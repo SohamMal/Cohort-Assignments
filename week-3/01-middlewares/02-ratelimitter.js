@@ -12,9 +12,22 @@ const app = express();
 // clears every one second
 
 let numberOfRequestsForUser = {};
+let reqNo=0;
 setInterval(() => {
+    reqNo=0;
     numberOfRequestsForUser = {};
 }, 1000)
+
+app.use(function(req, res, next){
+  reqNo++;
+  numberOfRequestsForUser["reqCount"]=reqNo;
+  if(numberOfRequestsForUser["reqCount"]>5){
+    res.send(404).json({
+      msg:"NOT FOUND"
+    })
+  }
+  next();
+})
 
 app.get('/user', function(req, res) {
   res.status(200).json({ name: 'john' });
