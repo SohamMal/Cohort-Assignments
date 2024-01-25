@@ -19,14 +19,22 @@ setInterval(() => {
 }, 1000)
 
 app.use(function(req, res, next){
-  reqNo++;
-  numberOfRequestsForUser["reqCount"]=reqNo;
-  if(numberOfRequestsForUser["reqCount"]>5){
-    res.send(404).json({
-      msg:"NOT FOUND"
-    })
+  const userId=req.headers["user-id"];
+  if(numberOfRequestsForUser[userId]){
+    numberOfRequestsForUser[userId]++;
+    if(numberOfRequestsForUser[userId]>5){
+      res.send(404).json({
+        msg:"NOT FOUND"
+      })
+    }
+    else{
+      next();
+    }
   }
-  next();
+  else{
+    numberOfRequestsForUser[userId]=1;
+    next();
+  }
 })
 
 app.get('/user', function(req, res) {

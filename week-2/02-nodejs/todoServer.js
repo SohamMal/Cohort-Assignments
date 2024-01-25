@@ -39,11 +39,103 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+  // I TRIED WITH FILE HANDLING, WITH ARRAY THIS COULD HAVE BEEN MUCH EASIER
   const express = require('express');
   const bodyParser = require('body-parser');
+
+  const fs=require('fs');
   
   const app = express();
   
   app.use(bodyParser.json());
+
+  ///////////////////////////////ALL OK//////////////////////////////////////////
+  app.get('/todos',function(req, res){
+    fs.readdir('todos',  function(err, file){
+      res.send(file);
+    })
+  })
+
+
+  ////////////////////////Problem With This End Point Here//////////////////////////////
+  app.get('/todos/:id', function(req, res){
+    fs.readdir('/todos', function(err,files){
+      files.forEach(function(file){
+        const filecontent=fs.readFileSync(`/todos/${file}`, 'utf-8');
+        const id=req.params.id;
+        const toFind=`id:${id}`;
+        if(filecontent.includes(toFind)){
+          res.send(filecontent);
+          fileFound = true;
+        }
+      })
+      if (!fileFound) {
+        res.status(404).json({
+            msg: "File not found"
+        });
+    }
+    })
+  })
+
+
+  ////////////////////////////ALL OK////////////////////////////////////////////
+  let idCount=0;
+  app.post('/todos', function(req, res){
+    const title=req.body.title;
+    const completed=req.body.completed;
+    const description=req.body.description;
+    const id=`id:${++idCount}`
+
+    const data=title+'\n'+completed+'\n'+description+'\n'+id;
+    let filename=`file${idCount}`;
+    fs.writeFile(`todos/${filename}`, data, function(err){
+      console.log("file written");
+    });
+
+    res.status(201).json({
+      id:idCount
+    })
+  })
+
+
+  ///////////////////////Problem With This Too//////////////////////////////////
+  app.put('/todos/:id', function(req,res){
+    const title=req.body.title;
+    const completed=req.body.completed;
+    const description=req.body.description;//assuming that user will update all values
+
+    fs.readdir('/todos', function(err,files){
+      files.forEach(function(file){
+        const filecontent=fs.readFileSync(file, 'utf-8');
+        const id=req.params.id;
+        const toFind=`id:${id}`;
+        if(filecontent.includes(toFind)){
+          filecontent=title+'\n'+completed+'\n'+description+'\n'+toFind;
+        }
+      })
+      res.status(404).json({
+        msg:"file not found"
+      })
+    })
+  })
+
+  /////////////////////////////Problem with this too/////////////////////////////
+  app.delete('/todos/:id', function(req, res){
+    fs.readdir('/todos', function(err,files){
+      files.forEach(function(file){
+        const filecontent=fs.readFileSync(file, 'utf-8');
+        const id=req.params.id;
+        const toFind=`id:${id}`;
+        if(filecontent.includes(toFind)){
+          fs.unlinkSync(file);
+        }
+      })
+      res.status(404).json({
+        msg:"file not found"
+      })
+    })
+  })
   
-  module.exports = app;
+  app.listen(3000);
+  // module.exports = app;

@@ -23,8 +23,8 @@ app.get('/', function(req, res){
   })
 })
 app.get('/file', function(req, res){
-    fs.readdir('files', function(err, files){
-      res.send(files);
+    fs.readdir('files', function(err, a){
+      res.send(a);
     })
 })
 app.get('/file/:filename', function(req, res){
